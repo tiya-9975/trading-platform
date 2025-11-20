@@ -20,14 +20,19 @@ const server = http.createServer(app);
 // Connect to MongoDB
 connectDB();
 
-// --- FIXED CORS HERE ---
-app.use(cors({
-  origin: [
-    "http://localhost:5173",       // local frontend
-    process.env.FRONTEND_URL || "" // deployed frontend
-  ],
-  credentials: true
-}));
+// --- FIXED CORS ---
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://trading-platform-two-xi.vercel.app"
+];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
+
 
 // Middleware
 app.use(express.json());
