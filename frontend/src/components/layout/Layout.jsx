@@ -10,7 +10,7 @@ const Layout = () => {
   return (
     <div className="flex h-screen bg-dark-bg overflow-hidden">
 
-      {/* MOBILE HAMBURGER BUTTON */}
+      {/* Mobile hamburger */}
       <button
         className="md:hidden p-3 text-white absolute top-4 left-4 z-50"
         onClick={() => setSidebarOpen(true)}
@@ -18,19 +18,21 @@ const Layout = () => {
         <Menu size={28} />
       </button>
 
-      {/* SIDEBAR (with mobile control) */}
-      <Sidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
-      />
+      {/* SIDEBAR */}
+      <div className="md:block hidden">
+        <Sidebar isOpen={true} onClose={() => {}} />
+      </div>
+
+      {/* Mobile Sidebar */}
+      <div className="md:hidden">
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      </div>
 
       {/* MAIN CONTENT */}
-      <div className="flex-1 flex flex-col overflow-hidden md:ml-64">
+      <div className="flex-1 flex flex-col overflow-hidden">
 
-        {/* Header */}
         <Header />
 
-        {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           <Outlet />
         </main>
