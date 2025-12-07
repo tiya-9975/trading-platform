@@ -27,10 +27,10 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {/* BACKDROP FOR MOBILE */}
+      {/* BACKDROP FOR MOBILE - only show when sidebar is open */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={onClose}
         />
       )}
@@ -39,22 +39,23 @@ const Sidebar = ({ isOpen, onClose }) => {
       <aside
         className={`
           fixed top-0 left-0 h-full w-64 bg-black border-r border-gray-800 flex flex-col z-50
-          transform transition-transform duration-300
+          transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-          md:translate-x-0 md:static
+          lg:translate-x-0 lg:static
         `}
       >
         {/* Header */}
         <div className="p-6 border-b border-gray-800 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-primary-500">TradePro</h1>
+            <h1 className="text-2xl font-bold text-blue-500">TradePro</h1>
             <p className="text-sm text-gray-400 mt-1">Invest Smarter</p>
           </div>
 
-          {/* Close button (mobile only) */}
+          {/* Close button (mobile/tablet only) */}
           <button
-            className="md:hidden text-gray-300 hover:text-white"
+            className="lg:hidden text-gray-300 hover:text-white transition-colors"
             onClick={onClose}
+            aria-label="Close menu"
           >
             <X size={22} />
           </button>
@@ -70,7 +71,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                   isActive
-                    ? 'bg-primary-900/30 text-primary-400 font-medium'
+                    ? 'bg-blue-600 text-white font-medium'
                     : 'text-gray-300 hover:bg-gray-800'
                 }`
               }
