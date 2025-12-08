@@ -4,6 +4,9 @@ import App from './App.jsx'
 import './index.css'
 import { wsService } from './services/websocket'
 
+// ✅ FORCE ENV INJECTION CHECK (IMPORTANT)
+console.log("BUILD_TIME_API_URL:", import.meta.env.VITE_API_URL);
+
 // ✅ GLOBAL websocket – runs ONCE only
 wsService.connect();
 
