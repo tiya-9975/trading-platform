@@ -1,17 +1,13 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_URL = "https://trading-platform-api-2oay.onrender.com/api";
-
-if (!API_URL) {
-  throw new Error("VITE_API_URL is not defined");
-}
- 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: "https://trading-platform-api-2oay.onrender.com/api",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
+
+
 
 // Request interceptor
 api.interceptors.request.use(
