@@ -1,11 +1,10 @@
 import axios from 'axios';
 
-const API_URL = "https://trading-platform-api-2oay.onrender.com/api";
+const API_URL = import.meta.env.VITE_API_URL || 'https://trading-platform-api-2oay.onrender.com/api';
 
-if (!API_URL) {
-  throw new Error("VITE_API_URL is not defined");
-}
- 
+// Optional: Log for debugging (remove in production)
+console.log('🔍 API_URL:', API_URL);
+
 const api = axios.create({
   baseURL: API_URL,
   headers: {
