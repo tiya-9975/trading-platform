@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { TrendingUp, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+const API_URL = 'https://trading-platform-api-2oay.onrender.com/api';
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -13,12 +16,13 @@ const SignupPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  console.log('✅ NEW SignupPage loaded with hardcoded API URL:', API_URL);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    // Basic validation
     if (!fullName || !email || !password || !confirmPassword) {
       setError('Please fill in all fields');
       setLoading(false);
@@ -38,34 +42,27 @@ const SignupPage = () => {
     }
 
     try {
-      // Use correct API endpoint
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ fullName, email, password }),
+      console.log('🔥 Making signup request to:', `${API_URL}/auth/signup`);
+      
+      const response = await axios.post(`${API_URL}/auth/signup`, { 
+        fullName, 
+        email, 
+        password 
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Signup successful - store token and redirect
-        console.log('Signup successful:', data);
-        if (data.token) {
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
-        }
-        alert('Account created successfully!');
-        // Redirect to dashboard
-        navigate('/');
-      } else {
-        // Signup failed - show error message
-        setError(data.error || data.message || 'Registration failed. Please try again.');
+      
+      const data = response.data;
+      console.log('✅ Signup successful:', data);
+      
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
       }
+      alert('Account created successfully!');
+      navigate('/');
     } catch (err) {
-      console.error('Signup error:', err);
-      setError('Unable to connect to server. Please try again later.');
+      console.error('❌ Signup error:', err);
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Unable to connect to server. Please try again later.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -74,7 +71,6 @@ const SignupPage = () => {
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo and Title */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-500 rounded-2xl mb-4">
             <TrendingUp className="w-8 h-8 text-white" />
@@ -84,7 +80,6 @@ const SignupPage = () => {
           <p className="text-slate-300 mt-4">Create your account</p>
         </div>
 
-        {/* Signup Form */}
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl p-8">
           {error && (
             <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
