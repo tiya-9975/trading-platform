@@ -48,7 +48,9 @@ const StockDetail = () => {
   const checkWatchlist = async () => {
     try {
       const response = await watchlistAPI.get();
-      const exists = response.data.some(item => item.stock.symbol === symbol);
+      console.log('Watchlist data:', response.data);
+      // Fixed: Backend returns item.symbol directly, not item.stock.symbol
+      const exists = response.data.some(item => item.symbol === symbol);
       setInWatchlist(exists);
     } catch (error) {
       console.error('Failed to check watchlist:', error);
@@ -58,14 +60,26 @@ const StockDetail = () => {
   const handleWatchlist = async () => {
     try {
       if (inWatchlist) {
-        await watchlistAPI.remove(stock._id);
+        // Backend expects symbol, not ID
+        console.log('Removing from watchlist:', symbol);
+        await watchlistAPI.remove(symbol);
         setInWatchlist(false);
+        console.log('Successfully removed from watchlist');
       } else {
-        await watchlistAPI.add(stock._id);
+        // Backend expects { symbol, name }
+        const data = {
+          symbol: stock.symbol,
+          name: stock.name
+        };
+        console.log('Adding to watchlist:', data);
+        await watchlistAPI.add(data);
         setInWatchlist(true);
+        console.log('Successfully added to watchlist');
       }
     } catch (error) {
       console.error('Watchlist operation failed:', error);
+      console.error('Error response:', error.response?.data);
+      alert('Watchlist operation failed: ' + (error.response?.data?.error || error.message));
     }
   };
 
@@ -90,17 +104,23 @@ const StockDetail = () => {
   const handleCreateAlert = async (e) => {
     e.preventDefault();
     try {
-      await alertsAPI.create({
-        stock: stock._id,
+      // Fixed: Backend expects symbol, name, targetPrice, condition
+      const alertData = {
+        symbol: stock.symbol,
+        name: stock.name,
         targetPrice: parseFloat(alertPrice),
-        type: alertType
-      });
+        condition: alertType  // Backend expects 'condition' not 'type'
+      };
+      
+      console.log('Creating alert:', alertData);
+      await alertsAPI.create(alertData);
       setShowAlertModal(false);
       setAlertPrice('');
       alert('Alert created successfully!');
     } catch (error) {
       console.error('Failed to create alert:', error);
-      alert('Failed to create alert');
+      console.error('Error response:', error.response?.data);
+      alert('Failed to create alert: ' + (error.response?.data?.error || error.message));
     }
   };
 
