@@ -135,7 +135,7 @@ const AIAssistant = () => {
         </div>
       </div>
 
-      <div className="flex-1 bg-dark-surface rounded-xl shadow-sm border border-dark-border flex flex-col overflow-hidden">
+      <div className="flex-1 bg-gray-900 rounded-xl shadow-sm border border-gray-700 flex flex-col overflow-hidden">
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.map((message, index) => (
@@ -153,7 +153,7 @@ const AIAssistant = () => {
                 <div className={`rounded-xl p-4 ${
                   message.role === 'user' 
                     ? 'bg-primary-600 text-white ml-auto' 
-                    : 'bg-dark-hover text-gray-100 border border-dark-border'
+                    : 'bg-gray-800 text-gray-100 border border-gray-700'
                 }`}>
                   <p className="text-sm leading-relaxed">{message.content}</p>
                   
@@ -194,7 +194,7 @@ const AIAssistant = () => {
               <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
                 <Bot size={16} className="text-white" />
               </div>
-              <div className="bg-dark-hover border border-dark-border rounded-xl p-4">
+              <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
                 <div className="flex gap-2">
                   <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
                   <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -208,7 +208,7 @@ const AIAssistant = () => {
         </div>
 
         {/* Input Area */}
-        <div className="border-t border-dark-border p-4">
+        <div className="border-t border-gray-700 p-4 bg-gray-900">
           {isListening && (
             <div className="mb-4 bg-red-900/20 border border-red-700/30 rounded-lg p-3">
               <p className="text-sm text-red-400 flex items-center gap-2">
@@ -239,7 +239,7 @@ const AIAssistant = () => {
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder="Type a command or use voice..."
                 disabled={processing || isListening}
-                className="flex-1 px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 text-gray-900 placeholder-gray-400"
+                className="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 text-gray-100 placeholder-gray-400"
               />
               <button
                 type="submit"
@@ -254,7 +254,7 @@ const AIAssistant = () => {
       </div>
 
       {/* Example Commands */}
-      <div className="mt-4 bg-dark-surface border border-dark-border rounded-xl p-4">
+      <div className="mt-4 bg-gray-900 border border-gray-700 rounded-xl p-4">
         <p className="text-sm font-medium text-gray-300 mb-3">Try these commands:</p>
         <div className="flex flex-wrap gap-2">
           {exampleCommands.map((cmd, index) => (
@@ -262,7 +262,7 @@ const AIAssistant = () => {
               key={index}
               onClick={() => handleCommand(cmd)}
               disabled={processing || isListening}
-              className="text-xs px-3 py-2 bg-dark-hover border border-dark-border rounded-lg hover:border-primary-500 hover:bg-primary-900/20 transition-colors disabled:opacity-50 text-gray-300"
+              className="text-xs px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg hover:border-primary-500 hover:bg-primary-900/20 transition-colors disabled:opacity-50 text-gray-300"
             >
               {cmd}
             </button>

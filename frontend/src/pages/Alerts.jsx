@@ -464,78 +464,81 @@ const Alerts = () => {
 
       {/* Create Alert Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-6 z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Create Price Alert</h2>
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-6 z-50">
+    <div className="bg-gray-900 rounded-xl p-6 w-full max-w-md border border-gray-700">
+      <h2 className="text-xl font-bold text-gray-100 mb-6">Create Price Alert</h2>
+      
+
             
-            <form onSubmit={handleCreateAlert} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Stock
-                </label>
-                <select
-                  required
-                  value={formData.symbol}
-                  onChange={(e) => setFormData({ ...formData, symbol: e.target.value })}
-                  className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-                >
-                  <option value="" className="text-gray-900">Select a stock</option>
-                  {stocks.map(stock => (
-                    <option key={stock.symbol} value={stock.symbol} className="text-gray-900">
-                      {stock.symbol} - {stock.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Condition
-                </label>
-                <select
-                  value={formData.condition}
-                  onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
-                  className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-                >
-                  <option value="above" className="text-gray-900">Price goes above</option>
-                  <option value="below" className="text-gray-900">Price goes below</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Target Price ($)
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={formData.targetPrice}
-                  onChange={(e) => setFormData({ ...formData, targetPrice: e.target.value })}
-                  className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-                  placeholder="0.00"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-3 bg-black hover:bg-gray-800 text-white font-semibold rounded-lg transition-colors shadow-lg"
-                >
-                  ✓ Create Alert
-                </button>
-              </div>
-            </form>
-          </div>
+                <form onSubmit={handleCreateAlert} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Stock
+          </label>
+          <select
+            required
+            value={formData.symbol}
+            onChange={(e) => setFormData({ ...formData, symbol: e.target.value })}
+            className="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-100"
+          >
+            <option value="" className="text-gray-100">Select a stock</option>
+            {stocks.map(stock => (
+              <option key={stock.symbol} value={stock.symbol} className="text-gray-100">
+                {stock.symbol} - {stock.name}
+              </option>
+            ))}
+          </select>
         </div>
-      )}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Condition
+          </label>
+          <select
+            value={formData.condition}
+            onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
+            className="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-100"
+          >
+            <option value="above" className="text-gray-100">Price goes above</option>
+            <option value="below" className="text-gray-100">Price goes below</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Target Price ($)
+          </label>
+          <input
+            type="number"
+            step="0.01"
+            required
+            value={formData.targetPrice}
+            onChange={(e) => setFormData({ ...formData, targetPrice: e.target.value })}
+            className="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-100"
+            placeholder="0.00"
+          />
+        </div>
+
+        <div className="flex gap-3 pt-4">
+          <button
+            type="button"
+            onClick={() => setShowModal(false)}
+            className="flex-1 px-4 py-3 border-2 border-gray-600 text-gray-300 font-semibold rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="flex-1 px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors shadow-lg"
+          >
+            ✓ Create Alert
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };
