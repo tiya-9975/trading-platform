@@ -193,27 +193,26 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* AI Recommendations */}
+      {/* AI Recommendations - PURPLE THEME */}
       {recommendations && (
-        <div className="bg-gradient-to-br from-primary-50 to-blue-50 rounded-xl p-6 shadow-sm border border-primary-100">
+        <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 shadow-sm border-2 border-purple-400">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
-              {/* <span className="text-white font-bold text-sm">AI</span> */}
+            <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+              <span className="text-white font-bold text-sm">AI</span>
             </div>
-            <h2 className="text-lg font-semibold bg-blue-600 text-white px-3 py-1 rounded">
-  AI Recommendations
-</h2>
-
+            <h2 className="text-lg font-semibold bg-purple-600 text-white px-3 py-1 rounded">
+              AI Recommendations
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {recommendations.topPicks.map((pick, idx) => (
-              <div key={idx} className="bg-white rounded-lg p-4">
+              <div key={idx} className="bg-white rounded-lg p-4 border border-purple-200">
                 <p className="font-semibold text-gray-900">{pick.symbol}</p>
-                <p className="text-xs text-gray-500 mb-2">{pick.name}</p>
-                <p className="text-sm text-gray-600">{pick.reason}</p>
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className="text-xs text-gray-500">Current Price</p>
+                <p className="text-xs text-gray-600 mb-2">{pick.name}</p>
+                <p className="text-sm text-gray-700">{pick.reason}</p>
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <p className="text-xs text-gray-600">Current Price</p>
                   <p className="text-lg font-bold text-gray-900">
                     ${pick.price}
                   </p>
