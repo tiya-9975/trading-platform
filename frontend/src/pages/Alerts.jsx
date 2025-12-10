@@ -9,7 +9,7 @@ const Alerts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [newAlert, setNewAlert] = useState({
-    stockId: '',  // Changed from 'stock' to 'stockId' for clarity
+    stockId: '',
     targetPrice: '',
     type: 'above'
   });
@@ -46,21 +46,48 @@ const Alerts = () => {
 
   const handleCreateAlert = async (e) => {
     e.preventDefault();
-    try {
-      // Find the selected stock to get its symbol and name
-      const selectedStock = stocks.find(s => s._id === newAlert.stockId);
-      
-      if (!selectedStock) {
-        alert('Please select a valid stock');
-        return;
-      }
+    
+    // ENHANCED DEBUG LOGS
+    console.log('=== CREATE ALERT DEBUG ===');
+    console.log('newAlert.stockId:', newAlert.stockId);
+    console.log('newAlert object:', newAlert);
+    console.log('stocks array:', stocks);
+    console.log('stocks length:', stocks.length);
+    
+    // Check if stocks array is empty
+    if (!stocks || stocks.length === 0) {
+      alert('No stocks available. Please refresh the page.');
+      return;
+    }
+    
+    // Find the selected stock to get its symbol and name
+    const selectedStock = stocks.find(s => {
+      console.log('Comparing:', s._id, 'with', newAlert.stockId, 'Match:', s._id === newAlert.stockId);
+      return s._id === newAlert.stockId;
+    });
+    
+    console.log('selectedStock found:', selectedStock);
+    
+    if (!selectedStock) {
+      alert('Please select a valid stock from the dropdown');
+      console.error('Could not find stock with ID:', newAlert.stockId);
+      console.error('Available stock IDs:', stocks.map(s => s._id));
+      return;
+    }
 
+    // Validate target price
+    if (!newAlert.targetPrice || parseFloat(newAlert.targetPrice) <= 0) {
+      alert('Please enter a valid target price');
+      return;
+    }
+
+    try {
       // Format data to match backend expectations
       const alertData = {
-        symbol: selectedStock.symbol,           // Backend expects 'symbol'
-        name: selectedStock.name,               // Backend expects 'name'
-        targetPrice: parseFloat(newAlert.targetPrice), // Convert to number
-        condition: newAlert.type                 // Backend expects 'condition'
+        symbol: selectedStock.symbol,
+        name: selectedStock.name,
+        targetPrice: parseFloat(newAlert.targetPrice),
+        condition: newAlert.type
       };
 
       console.log('Creating alert with data:', alertData);
@@ -70,11 +97,11 @@ const Alerts = () => {
       
       setShowModal(false);
       setNewAlert({ stockId: '', targetPrice: '', type: 'above' });
-      loadData();
+      await loadData();
+      alert('Alert created successfully!');
     } catch (error) {
       console.error('Failed to create alert:', error);
       console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
       alert('Failed to create alert: ' + (error.response?.data?.error || error.message));
     }
   };
@@ -83,7 +110,7 @@ const Alerts = () => {
     if (!window.confirm('Are you sure you want to delete this alert?')) return;
     try {
       await alertsAPI.delete(id);
-      loadData();
+      await loadData();
     } catch (error) {
       console.error('Failed to delete alert:', error);
       alert('Failed to delete alert');
@@ -93,7 +120,7 @@ const Alerts = () => {
   const handleActivate = async (id) => {
     try {
       await alertsAPI.update(id, { isActive: true });
-      loadData();
+      await loadData();
     } catch (error) {
       console.error('Failed to activate alert:', error);
       alert('Failed to activate alert');
@@ -250,7 +277,10 @@ const Alerts = () => {
                 </label>
                 <select
                   value={newAlert.stockId}
-                  onChange={(e) => setNewAlert({ ...newAlert, stockId: e.target.value })}
+                  onChange={(e) => {
+                    console.log('Stock selected:', e.target.value);
+                    setNewAlert({ ...newAlert, stockId: e.target.value });
+                  }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   required
                 >
@@ -303,7 +333,8 @@ const Alerts = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  disabled={!newAlert.stockId || !newAlert.targetPrice}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Create Alert
                 </button>

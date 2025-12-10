@@ -55,9 +55,12 @@ const AIAssistant = () => {
     setLoading(true);
 
     try {
-      const response = await aiAPI.chat(userMessage);
+      // FIXED: Changed from aiAPI.chat to aiAPI.processChat
+      const response = await aiAPI.processChat(userMessage);
       setMessages(prev => [...prev, { role: 'assistant', content: response.data.response }]);
     } catch (error) {
+      console.error('AI API Error:', error);
+      console.error('Error response:', error.response?.data);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
         content: 'Sorry, I encountered an error. Please try again.' 
