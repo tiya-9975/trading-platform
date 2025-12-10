@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Briefcase } from 'lucide-react';
+import { TrendingUp, TrendingDown, Briefcase, AlertCircle } from 'lucide-react';
 import { portfolioAPI } from '../services/api';
 
 const Portfolio = () => {
@@ -18,9 +18,17 @@ const Portfolio = () => {
       console.log('Loading portfolio...');
       
       const response = await portfolioAPI.getSummary();
-      console.log('Portfolio data:', response.data);
+      console.log('Full API response:', response);
       
-      setPortfolio(response.data);
+      // Handle different response formats
+      const data = response.data || response;
+      console.log('Portfolio data:', data);
+      
+      if (!data) {
+        throw new Error('No data received from API');
+      }
+      
+      setPortfolio(data);
     } catch (error) {
       console.error('Failed to load portfolio:', error);
       setError(error.message || 'Failed to load portfolio');
@@ -44,15 +52,39 @@ const Portfolio = () => {
     return (
       <div className="p-6 bg-gray-50 min-h-screen">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-            <Briefcase size={48} className="mx-auto text-red-400 mb-4" />
-            <h3 className="text-lg font-semibold text-red-900 mb-2">Error Loading Portfolio</h3>
-            <p className="text-red-700 mb-4">{error}</p>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+            <div className="flex items-start gap-4">
+              <AlertCircle size={24} className="text-red-600 flex-shrink-0 mt-1" />
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-red-900 mb-2">Error Loading Portfolio</h3>
+                <p className="text-red-700 mb-4">{error}</p>
+                <button
+                  onClick={loadPortfolio}
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!portfolio) {
+    return (
+      <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
+            <AlertCircle size={48} className="mx-auto text-yellow-600 mb-4" />
+            <h3 className="text-lg font-semibold text-yellow-900 mb-2">No Portfolio Data</h3>
+            <p className="text-yellow-700 mb-4">Portfolio data is empty</p>
             <button
               onClick={loadPortfolio}
-              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              className="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
             >
-              Try Again
+              Reload
             </button>
           </div>
         </div>
