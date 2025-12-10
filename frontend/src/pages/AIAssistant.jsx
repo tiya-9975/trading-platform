@@ -1,36 +1,38 @@
-import { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Bot, Send, Volume2, RefreshCw } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Send, Mic, Volume2, MessageSquare } from 'lucide-react';
 import { aiAPI } from '../services/api';
-import { useAuth } from '../context/AuthContext';
 
 const AIAssistant = () => {
-  const { user, updateUser } = useAuth();
-  const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState('');
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hello! I\'m your AI trading assistant powered by DeepSeek AI. I can check stock prices, place buy orders, show your portfolio, and give recommendations. Try saying "Buy 5 shares of Apple" or "What\'s the price of Tesla?"' }
+    {
+      role: 'assistant',
+      content: "Hello! I'm your AI trading assistant powered by DeepSeek AI. I can check stock prices, place buy orders, show your portfolio, and give recommendations. Try saying \"Buy 5 shares of Apple\" or \"What's the price of Tesla?\""
+    }
   ]);
-  const [inputText, setInputText] = useState('');
-  const [processing, setProcessing] = useState(false);
-  const recognitionRef = useRef(null);
+  const [input, setInput] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const recognitionRef = useRef(null);
 
   useEffect(() => {
-    // Initialize Speech Recognition
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
-      
+
       recognitionRef.current.onresult = (event) => {
-        const speechToText = event.results[0][0].transcript;
-        setTranscript(speechToText);
-        handleCommand(speechToText);
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+        setIsListening(false);
       };
 
-      recognitionRef.current.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
+      recognitionRef.current.onerror = () => {
         setIsListening(false);
       };
 
@@ -38,71 +40,45 @@ const AIAssistant = () => {
         setIsListening(false);
       };
     }
-
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-    };
   }, []);
 
-  useEffect(() => {
+  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const toggleListening = () => {
-    if (isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
-    } else {
-      setTranscript('');
-      recognitionRef.current?.start();
-      setIsListening(true);
-    }
   };
 
-  const handleCommand = async (command) => {
-    setMessages(prev => [...prev, { role: 'user', content: command }]);
-    setProcessing(true);
+  const handleSend = async () => {
+    if (!input.trim() || loading) return;
+
+    const userMessage = input.trim();
+    setInput('');
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setLoading(true);
 
     try {
-      const response = await aiAPI.processChat(command);
-      const aiResponse = response.data.response;
-      
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: aiResponse,
-        action: response.data.action,
-        type: response.data.type
-      }]);
-      
-      // Update balance if it changed
-      if (response.data.newBalance !== undefined) {
-        updateUser({ ...user, balance: response.data.newBalance });
-      }
-      
-      // Text-to-speech response
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(aiResponse);
-        utterance.rate = 1.0;
-        utterance.pitch = 1.0;
-        window.speechSynthesis.speak(utterance);
-      }
+      const response = await aiAPI.chat(userMessage);
+      setMessages(prev => [...prev, { role: 'assistant', content: response.data.response }]);
     } catch (error) {
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: 'Sorry, I encountered an error processing your request. Please try again.' 
+        content: 'Sorry, I encountered an error. Please try again.' 
       }]);
     } finally {
-      setProcessing(false);
+      setLoading(false);
     }
   };
 
-  const handleTextSubmit = (e) => {
-    e.preventDefault();
-    if (inputText.trim()) {
-      handleCommand(inputText);
-      setInputText('');
+  const handleVoiceInput = () => {
+    if (!recognitionRef.current) {
+      alert('Speech recognition is not supported in your browser');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      recognitionRef.current.start();
+      setIsListening(true);
     }
   };
 
@@ -110,13 +86,13 @@ const AIAssistant = () => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.0;
+      utterance.rate = 0.9;
       utterance.pitch = 1.0;
       window.speechSynthesis.speak(utterance);
     }
   };
 
-  const exampleCommands = [
+  const suggestedCommands = [
     "What's the price of Apple?",
     "Buy 5 shares of Tesla",
     "Show me my portfolio",
@@ -124,149 +100,115 @@ const AIAssistant = () => {
   ];
 
   return (
-    <div className="p-6 h-full flex flex-col">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
-          <Bot size={24} className="text-white" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-100">AI Assistant</h1>
-          <p className="text-sm text-gray-400">Powered by DeepSeek AI - Voice & Text</p>
-        </div>
-      </div>
-
-      <div className="flex-1 bg-gray-900 rounded-xl shadow-sm border border-gray-700 flex flex-col overflow-hidden">
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              {message.role === 'assistant' && (
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Bot size={16} className="text-white" />
-                </div>
-              )}
-              
-              <div className={`max-w-2xl ${message.role === 'user' ? 'order-first' : ''}`}>
-                <div className={`rounded-xl p-4 ${
-                  message.role === 'user' 
-                    ? 'bg-primary-600 text-white ml-auto' 
-                    : 'bg-gray-800 text-gray-100 border border-gray-700'
-                }`}>
-                  <p className="text-sm leading-relaxed">{message.content}</p>
-                  
-                  {/* Action badge */}
-                  {message.action && (
-                    <div className="mt-2 pt-2 border-t border-gray-600">
-                      <span className="text-xs px-2 py-1 bg-green-900/30 text-green-400 rounded">
-                        {message.action === 'buy_stock' && '✓ Order Executed'}
-                        {message.action === 'get_stock_price' && 'ℹ️ Price Info'}
-                        {message.action === 'get_portfolio' && '📊 Portfolio'}
-                        {message.action === 'get_recommendations' && '💡 Recommendations'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                
-                {message.role === 'assistant' && (
-                  <button
-                    onClick={() => speakMessage(message.content)}
-                    className="mt-2 flex items-center gap-1 text-xs text-gray-400 hover:text-primary-400"
-                  >
-                    <Volume2 size={14} />
-                    Speak
-                  </button>
-                )}
-              </div>
-
-              {message.role === 'user' && (
-                <div className="w-8 h-8 bg-primary-900/30 border border-primary-700/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <span className="text-primary-400 font-semibold text-sm">You</span>
-                </div>
-              )}
-            </div>
-          ))}
-
-          {processing && (
-            <div className="flex gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
-                <Bot size={16} className="text-white" />
-              </div>
-              <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
-                <div className="flex gap-2">
-                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input Area */}
-        <div className="border-t border-gray-700 p-4 bg-gray-900">
-          {isListening && (
-            <div className="mb-4 bg-red-900/20 border border-red-700/30 rounded-lg p-3">
-              <p className="text-sm text-red-400 flex items-center gap-2">
-                <span className="animate-pulse">🔴</span>
-                Listening... Speak now
-              </p>
-              {transcript && <p className="text-sm text-gray-300 mt-1">{transcript}</p>}
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            <button
-              onClick={toggleListening}
-              disabled={processing}
-              className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center transition-all ${
-                isListening
-                  ? 'bg-red-600 hover:bg-red-700 text-white'
-                  : 'bg-primary-600 hover:bg-primary-700 text-white'
-              } disabled:bg-gray-600 disabled:cursor-not-allowed`}
-            >
-              {isListening ? <MicOff size={20} /> : <Mic size={20} />}
-            </button>
-
-            <form onSubmit={handleTextSubmit} className="flex-1 flex gap-3">
-              <input
-                type="text"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder="Type a command or use voice..."
-                disabled={processing || isListening}
-                className="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 text-gray-100 placeholder-gray-400"
-              />
-              <button
-                type="submit"
-                disabled={!inputText.trim() || processing || isListening}
-                className="flex-shrink-0 w-12 h-12 bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center justify-center transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
-              >
-                <Send size={20} />
-              </button>
-            </form>
+    <div className="flex flex-col h-full bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 p-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+            <MessageSquare size={20} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-blue-600">AI Assistant</h1>
+            <p className="text-sm text-gray-600">Powered by DeepSeek AI - Voice & Text</p>
           </div>
         </div>
       </div>
 
-      {/* Example Commands */}
-      <div className="mt-4 bg-gray-900 border border-gray-700 rounded-xl p-4">
-        <p className="text-sm font-medium text-gray-300 mb-3">Try these commands:</p>
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div
+              className={`max-w-3xl rounded-2xl px-6 py-4 ${
+                message.role === 'user'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white border border-gray-200 text-gray-800'
+              }`}
+            >
+              {message.role === 'assistant' && (
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-xs">AI</span>
+                  </div>
+                  <button
+                    onClick={() => speakMessage(message.content)}
+                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                    title="Read aloud"
+                  >
+                    <Volume2 size={16} className="text-gray-600" />
+                  </button>
+                </div>
+              )}
+              <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+            </div>
+          </div>
+        ))}
+        
+        {loading && (
+          <div className="flex justify-start">
+            <div className="bg-white border border-gray-200 rounded-2xl px-6 py-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Suggested Commands */}
+      <div className="px-6 pb-4">
+        <p className="text-xs font-medium text-gray-700 mb-2">Try these commands:</p>
         <div className="flex flex-wrap gap-2">
-          {exampleCommands.map((cmd, index) => (
+          {suggestedCommands.map((cmd, idx) => (
             <button
-              key={index}
-              onClick={() => handleCommand(cmd)}
-              disabled={processing || isListening}
-              className="text-xs px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg hover:border-primary-500 hover:bg-primary-900/20 transition-colors disabled:opacity-50 text-gray-300"
+              key={idx}
+              onClick={() => setInput(cmd)}
+              className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
             >
               {cmd}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Input Area */}
+      <div className="bg-white border-t border-gray-200 p-6">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleVoiceInput}
+            className={`p-3 rounded-lg transition-colors ${
+              isListening 
+                ? 'bg-red-100 text-red-600' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+            title={isListening ? 'Stop listening' : 'Start voice input'}
+          >
+            <Mic size={20} />
+          </button>
+          
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+            placeholder="Type a command or use voice..."
+            className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+            disabled={loading}
+          />
+          
+          <button
+            onClick={handleSend}
+            disabled={loading || !input.trim()}
+            className="p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Send size={20} />
+          </button>
         </div>
       </div>
     </div>
