@@ -9,7 +9,7 @@ const Alerts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [newAlert, setNewAlert] = useState({
-    stockId: '',
+    symbol: '',  // Changed from stockId to symbol
     targetPrice: '',
     type: 'above'
   });
@@ -47,12 +47,10 @@ const Alerts = () => {
   const handleCreateAlert = async (e) => {
     e.preventDefault();
     
-    // ENHANCED DEBUG LOGS
     console.log('=== CREATE ALERT DEBUG ===');
-    console.log('newAlert.stockId:', newAlert.stockId);
+    console.log('newAlert.symbol:', newAlert.symbol);
     console.log('newAlert object:', newAlert);
     console.log('stocks array:', stocks);
-    console.log('stocks length:', stocks.length);
     
     // Check if stocks array is empty
     if (!stocks || stocks.length === 0) {
@@ -60,18 +58,15 @@ const Alerts = () => {
       return;
     }
     
-    // Find the selected stock to get its symbol and name
-    const selectedStock = stocks.find(s => {
-      console.log('Comparing:', s._id, 'with', newAlert.stockId, 'Match:', s._id === newAlert.stockId);
-      return s._id === newAlert.stockId;
-    });
+    // Find the selected stock by symbol instead of _id
+    const selectedStock = stocks.find(s => s.symbol === newAlert.symbol);
     
     console.log('selectedStock found:', selectedStock);
     
     if (!selectedStock) {
       alert('Please select a valid stock from the dropdown');
-      console.error('Could not find stock with ID:', newAlert.stockId);
-      console.error('Available stock IDs:', stocks.map(s => s._id));
+      console.error('Could not find stock with symbol:', newAlert.symbol);
+      console.error('Available stock symbols:', stocks.map(s => s.symbol));
       return;
     }
 
@@ -96,7 +91,7 @@ const Alerts = () => {
       console.log('Alert created successfully:', response.data);
       
       setShowModal(false);
-      setNewAlert({ stockId: '', targetPrice: '', type: 'above' });
+      setNewAlert({ symbol: '', targetPrice: '', type: 'above' });
       await loadData();
       alert('Alert created successfully!');
     } catch (error) {
@@ -276,17 +271,17 @@ const Alerts = () => {
                   Select Stock
                 </label>
                 <select
-                  value={newAlert.stockId}
+                  value={newAlert.symbol}
                   onChange={(e) => {
                     console.log('Stock selected:', e.target.value);
-                    setNewAlert({ ...newAlert, stockId: e.target.value });
+                    setNewAlert({ ...newAlert, symbol: e.target.value });
                   }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   required
                 >
                   <option value="">Choose a stock</option>
                   {stocks.map((stock) => (
-                    <option key={stock._id} value={stock._id}>
+                    <option key={stock.symbol} value={stock.symbol}>
                       {stock.symbol} - {stock.name}
                     </option>
                   ))}
@@ -333,7 +328,7 @@ const Alerts = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={!newAlert.stockId || !newAlert.targetPrice}
+                  disabled={!newAlert.symbol || !newAlert.targetPrice}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Create Alert
