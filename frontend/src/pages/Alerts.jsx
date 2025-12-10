@@ -7,6 +7,7 @@ const Alerts = () => {
   const [stocks, setStocks] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [newAlert, setNewAlert] = useState({
     stock: '',
     targetPrice: '',
@@ -19,14 +20,25 @@ const Alerts = () => {
 
   const loadData = async () => {
     try {
+      setLoading(true);
+      setError(null);
+      console.log('Loading alerts data...');
+      
       const [alertsRes, stocksRes] = await Promise.all([
         alertsAPI.get(),
         stocksAPI.getAll()
       ]);
-      setAlerts(alertsRes.data);
-      setStocks(stocksRes.data);
+      
+      console.log('Alerts:', alertsRes.data);
+      console.log('Stocks:', stocksRes.data);
+      
+      setAlerts(alertsRes.data || []);
+      setStocks(stocksRes.data || []);
     } catch (error) {
       console.error('Failed to load data:', error);
+      setError(error.message || 'Failed to load alerts');
+      setAlerts([]);
+      setStocks([]);
     } finally {
       setLoading(false);
     }
@@ -41,7 +53,7 @@ const Alerts = () => {
       loadData();
     } catch (error) {
       console.error('Failed to create alert:', error);
-      alert('Failed to create alert');
+      alert('Failed to create alert: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -52,6 +64,7 @@ const Alerts = () => {
       loadData();
     } catch (error) {
       console.error('Failed to delete alert:', error);
+      alert('Failed to delete alert');
     }
   };
 
@@ -61,19 +74,43 @@ const Alerts = () => {
       loadData();
     } catch (error) {
       console.error('Failed to activate alert:', error);
+      alert('Failed to activate alert');
     }
   };
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="p-6 flex items-center justify-center h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading alerts...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+            <Bell size={48} className="mx-auto text-red-400 mb-4" />
+            <h3 className="text-lg font-semibold text-red-900 mb-2">Error Loading Alerts</h3>
+            <p className="text-red-700 mb-4">{error}</p>
+            <button
+              onClick={loadData}
+              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
@@ -98,13 +135,13 @@ const Alerts = () => {
         <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
           <Bell size={48} className="mx-auto text-gray-300 mb-4" />
           <h3 className="text-lg font-semibold text-gray-700 mb-2">No alerts set</h3>
-          <p className="text-gray-500 mb-4">Create price alerts to stay informed</p>
+          <p className="text-gray-500 mb-4">Create price alerts to stay informed about your stocks</p>
           <button
             onClick={() => setShowModal(true)}
             className="inline-flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Plus size={18} />
-            Create Alert
+            Create Your First Alert
           </button>
         </div>
       ) : (
@@ -116,8 +153,8 @@ const Alerts = () => {
             >
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">{alert.stock.symbol}</h3>
-                  <p className="text-sm text-gray-600">{alert.stock.name}</p>
+                  <h3 className="text-xl font-bold text-gray-900">{alert.stock?.symbol || 'N/A'}</h3>
+                  <p className="text-sm text-gray-600">{alert.stock?.name || 'Unknown Stock'}</p>
                 </div>
                 <button
                   onClick={() => handleDelete(alert._id)}
@@ -143,14 +180,14 @@ const Alerts = () => {
                   <p className="text-xs text-gray-600 mb-1">Target Price</p>
                   <p className="text-3xl font-bold text-gray-900">${alert.targetPrice}</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    Current: ${alert.stock.price}
+                    Current: ${alert.stock?.price || 'N/A'}
                   </p>
                 </div>
 
                 <div className="pt-3 border-t border-gray-200">
                   {alert.isActive ? (
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                       <span className="text-sm font-medium text-green-600">Active</span>
                     </div>
                   ) : (
@@ -158,7 +195,7 @@ const Alerts = () => {
                       onClick={() => handleActivate(alert._id)}
                       className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                     >
-                      Activate
+                      Click to Activate
                     </button>
                   )}
                 </div>
@@ -190,7 +227,7 @@ const Alerts = () => {
                 <select
                   value={newAlert.stock}
                   onChange={(e) => setNewAlert({ ...newAlert, stock: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   required
                 >
                   <option value="">Choose a stock</option>
@@ -204,11 +241,12 @@ const Alerts = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Target Price
+                  Target Price ($)
                 </label>
                 <input
                   type="number"
                   step="0.01"
+                  min="0"
                   value={newAlert.targetPrice}
                   onChange={(e) => setNewAlert({ ...newAlert, targetPrice: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
@@ -224,7 +262,7 @@ const Alerts = () => {
                 <select
                   value={newAlert.type}
                   onChange={(e) => setNewAlert({ ...newAlert, type: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                 >
                   <option value="above">Price goes above target</option>
                   <option value="below">Price goes below target</option>
