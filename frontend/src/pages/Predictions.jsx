@@ -78,7 +78,7 @@ const Predictions = () => {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
             <LineChart size={20} className="text-white" />
           </div>
           <div>
@@ -90,10 +90,10 @@ const Predictions = () => {
 
       {/* AI Recommendations Card */}
       {recommendations && (
-        <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-700/30 rounded-xl p-6">
+        <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/40 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-sm">AI</span>
               </div>
               <h2 className="text-lg font-semibold text-gray-100">Top Recommendations</h2>
@@ -102,7 +102,7 @@ const Predictions = () => {
             <button
               onClick={speakRecommendations}
               disabled={speaking}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors disabled:opacity-50"
             >
               <Volume2 size={18} />
               {speaking ? 'Speaking...' : 'Read Aloud'}
@@ -170,7 +170,7 @@ const Predictions = () => {
               <p className="text-2xl font-bold text-gray-100">${prediction.currentPrice}</p>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 border border-purple-700/20 rounded-lg p-4 mb-4">
+            <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-lg p-4 mb-4">
               <p className="text-sm font-medium text-gray-100 mb-2">{prediction.prediction}</p>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-400">Confidence: {prediction.confidence}%</span>
