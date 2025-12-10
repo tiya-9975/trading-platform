@@ -20,21 +20,38 @@ const server = http.createServer(app);
 // Connect to MongoDB
 connectDB();
 
-// --- FIXED CORS ---
+// ----------------------
+// ✅ FIXED & PRODUCTION CORS
+// ----------------------
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://trading-platform-two-xi.vercel.app"
+  "https://trading-platform-two-xi.vercel.app",
+  "https://trading-platform-git-main-tiya-jains-projects-31696821.vercel.app" // your real deployed domain
 ];
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      // Allow Thunder Client / Postman / server-to-server
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        console.log("❌ CORS blocked:", origin);
+        return callback(new Error("Not allowed by CORS"), false);
+      }
+    },
     credentials: true,
   })
 );
 
+// Important for preflight (OPTIONS)
+app.options("*", cors());
 
-// Middleware
+// ----------------------
+// Middlewares
+// ----------------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -49,7 +66,9 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// ----------------------
 // API Routes
+// ----------------------
 app.use('/api/auth', authRoutes);
 app.use('/api/stocks', stocksRoutes);
 app.use('/api/portfolio', portfolioRoutes);
@@ -64,14 +83,18 @@ app.use((req, res) => {
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  console.error('❌ Error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
+// ----------------------
 // Initialize WebSocket
+// ----------------------
 initWebSocket(server);
 
-// Start server
+// ----------------------
+// Start Server
+// ----------------------
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`
