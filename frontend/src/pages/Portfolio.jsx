@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Briefcase, AlertCircle } from 'lucide-react';
 import { portfolioAPI } from '../services/api';
 
+// Helper function to safely format numbers
+const formatNumber = (value, decimals = 2) => {
+  const num = parseFloat(value);
+  return isNaN(num) ? '0.00' : num.toFixed(decimals);
+};
+
 const Portfolio = () => {
   const [portfolio, setPortfolio] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,7 +26,6 @@ const Portfolio = () => {
       const response = await portfolioAPI.getSummary();
       console.log('Full API response:', response);
       
-      // Handle different response formats
       const data = response.data || response;
       console.log('Portfolio data:', data);
       
@@ -109,7 +114,7 @@ const Portfolio = () => {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <p className="text-sm text-gray-600 mb-1">Total Value</p>
           <p className="text-2xl font-bold text-gray-900">
-            ${portfolio?.summary?.totalValue?.toFixed(2) || '0.00'}
+            ${formatNumber(portfolio?.summary?.totalValue)}
           </p>
           <p className="text-xs text-green-600 mt-2">Portfolio value</p>
         </div>
@@ -117,7 +122,7 @@ const Portfolio = () => {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <p className="text-sm text-gray-600 mb-1">Total Invested</p>
           <p className="text-2xl font-bold text-gray-900">
-            ${portfolio?.summary?.totalInvested?.toFixed(2) || '0.00'}
+            ${formatNumber(portfolio?.summary?.totalInvested)}
           </p>
           <p className="text-xs text-gray-600 mt-2">Capital deployed</p>
         </div>
@@ -129,21 +134,21 @@ const Portfolio = () => {
               ? 'text-green-600' 
               : 'text-red-600'
           }`}>
-            ${portfolio?.summary?.totalProfitLoss?.toFixed(2) || '0.00'}
+            ${formatNumber(portfolio?.summary?.totalProfitLoss)}
           </p>
           <p className={`text-xs mt-2 ${
             parseFloat(portfolio?.summary?.totalProfitLossPercent || 0) >= 0 
               ? 'text-green-600' 
               : 'text-red-600'
           }`}>
-            {portfolio?.summary?.totalProfitLossPercent?.toFixed(2) || '0.00'}%
+            {formatNumber(portfolio?.summary?.totalProfitLossPercent)}%
           </p>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <p className="text-sm text-gray-600 mb-1">Cash Available</p>
           <p className="text-2xl font-bold text-gray-900">
-            ${portfolio?.summary?.cash?.toFixed(2) || '0.00'}
+            ${formatNumber(portfolio?.summary?.cash)}
           </p>
           <p className="text-xs text-gray-600 mt-2">Available to invest</p>
         </div>
@@ -175,8 +180,8 @@ const Portfolio = () => {
               </thead>
               <tbody>
                 {portfolio.holdings.map((holding, index) => {
-                  const profitLoss = holding.profitLoss || 0;
-                  const returnPercent = holding.returnPercent || 0;
+                  const profitLoss = parseFloat(holding.profitLoss || 0);
+                  const returnPercent = parseFloat(holding.returnPercent || 0);
                   
                   return (
                     <tr 
@@ -189,15 +194,17 @@ const Portfolio = () => {
                           <p className="text-sm text-gray-400">{holding.stock?.name || 'Unknown'}</p>
                         </div>
                       </td>
-                      <td className="text-right py-4 px-4 text-white font-medium">{holding.quantity || 0}</td>
                       <td className="text-right py-4 px-4 text-white font-medium">
-                        ${holding.averagePrice?.toFixed(2) || '0.00'}
+                        {holding.quantity || 0}
                       </td>
                       <td className="text-right py-4 px-4 text-white font-medium">
-                        ${holding.currentPrice?.toFixed(2) || '0.00'}
+                        ${formatNumber(holding.averagePrice)}
+                      </td>
+                      <td className="text-right py-4 px-4 text-white font-medium">
+                        ${formatNumber(holding.currentPrice)}
                       </td>
                       <td className="text-right py-4 px-4 text-white font-bold">
-                        ${holding.totalValue?.toFixed(2) || '0.00'}
+                        ${formatNumber(holding.totalValue)}
                       </td>
                       <td className="text-right py-4 px-4">
                         <div className="flex items-center justify-end gap-1">
@@ -209,7 +216,7 @@ const Portfolio = () => {
                           <span className={`font-bold ${
                             profitLoss >= 0 ? 'text-green-400' : 'text-red-400'
                           }`}>
-                            {profitLoss >= 0 ? '+' : ''}${profitLoss.toFixed(2)}
+                            {profitLoss >= 0 ? '+' : ''}${formatNumber(profitLoss)}
                           </span>
                         </div>
                       </td>
@@ -217,7 +224,7 @@ const Portfolio = () => {
                         <span className={`font-bold ${
                           returnPercent >= 0 ? 'text-green-400' : 'text-red-400'
                         }`}>
-                          {returnPercent >= 0 ? '+' : ''}{returnPercent.toFixed(2)}%
+                          {returnPercent >= 0 ? '+' : ''}{formatNumber(returnPercent)}%
                         </span>
                       </td>
                     </tr>
