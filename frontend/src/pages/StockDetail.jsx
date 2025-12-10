@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, TrendingUp, TrendingDown, Eye, Bell, ShoppingCart } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { stocksAPI, watchlistAPI, alertsAPI, portfolioAPI } from '../services/api';
 
 const StockDetail = () => {
   const { symbol } = useParams();
   const navigate = useNavigate();
   const [stock, setStock] = useState(null);
+  const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [inWatchlist, setInWatchlist] = useState(false);
   const [showBuyModal, setShowBuyModal] = useState(false);
@@ -24,6 +26,18 @@ const StockDetail = () => {
     try {
       const response = await stocksAPI.getBySymbol(symbol);
       setStock(response.data);
+      
+      // Generate mock chart data based on current price
+      const basePrice = response.data.price;
+      const mockData = [];
+      for (let i = 30; i >= 0; i--) {
+        const variation = (Math.random() - 0.5) * 10;
+        mockData.push({
+          date: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          price: parseFloat((basePrice + variation).toFixed(2))
+        });
+      }
+      setChartData(mockData);
     } catch (error) {
       console.error('Failed to load stock:', error);
     } finally {
@@ -117,16 +131,16 @@ const StockDetail = () => {
   const totalCost = stock.price * quantity;
 
   return (
-    <div className="p-6">
+    <div className="p-6 space-y-6">
       <button
-        onClick={() => navigate('/stocks')}
-        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
       >
         <ArrowLeft size={20} />
-        <span>Back to Stocks</span>
+        <span>Back</span>
       </button>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-8 mb-6">
+      <div className="bg-white border border-gray-200 rounded-xl p-8">
         <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 mb-2">{stock.symbol}</h1>
@@ -187,6 +201,45 @@ const StockDetail = () => {
         </div>
       </div>
 
+      {/* Price Chart */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Price History (30 Days)</h2>
+        <ResponsiveContainer width="100%" height={400}>
+          <LineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis 
+              dataKey="date" 
+              stroke="#6b7280"
+              style={{ fontSize: '12px' }}
+            />
+            <YAxis 
+              stroke="#6b7280"
+              style={{ fontSize: '12px' }}
+              domain={['auto', 'auto']}
+            />
+            <Tooltip 
+              contentStyle={{
+                backgroundColor: '#fff',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '8px'
+              }}
+              labelStyle={{ color: '#374151', fontWeight: 'bold' }}
+              itemStyle={{ color: '#2563eb' }}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="price" 
+              stroke="#2563eb" 
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 6 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Market Information */}
       <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-400 rounded-xl p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4">Market Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
