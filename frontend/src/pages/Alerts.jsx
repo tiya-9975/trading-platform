@@ -9,7 +9,7 @@ const Alerts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [newAlert, setNewAlert] = useState({
-    stock: '',
+    stockId: '',  // Changed from 'stock' to 'stockId' for clarity
     targetPrice: '',
     type: 'above'
   });
@@ -47,13 +47,35 @@ const Alerts = () => {
   const handleCreateAlert = async (e) => {
     e.preventDefault();
     try {
-      await alertsAPI.create(newAlert);
+      // Find the selected stock to get its symbol and name
+      const selectedStock = stocks.find(s => s._id === newAlert.stockId);
+      
+      if (!selectedStock) {
+        alert('Please select a valid stock');
+        return;
+      }
+
+      // Format data to match backend expectations
+      const alertData = {
+        symbol: selectedStock.symbol,           // Backend expects 'symbol'
+        name: selectedStock.name,               // Backend expects 'name'
+        targetPrice: parseFloat(newAlert.targetPrice), // Convert to number
+        condition: newAlert.type                 // Backend expects 'condition'
+      };
+
+      console.log('Creating alert with data:', alertData);
+      
+      const response = await alertsAPI.create(alertData);
+      console.log('Alert created successfully:', response.data);
+      
       setShowModal(false);
-      setNewAlert({ stock: '', targetPrice: '', type: 'above' });
+      setNewAlert({ stockId: '', targetPrice: '', type: 'above' });
       loadData();
     } catch (error) {
       console.error('Failed to create alert:', error);
-      alert('Failed to create alert: ' + (error.response?.data?.message || error.message));
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      alert('Failed to create alert: ' + (error.response?.data?.error || error.message));
     }
   };
 
@@ -153,8 +175,8 @@ const Alerts = () => {
             >
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">{alert.stock?.symbol || 'N/A'}</h3>
-                  <p className="text-sm text-gray-600">{alert.stock?.name || 'Unknown Stock'}</p>
+                  <h3 className="text-xl font-bold text-gray-900">{alert.symbol || 'N/A'}</h3>
+                  <p className="text-sm text-gray-600">{alert.name || 'Unknown Stock'}</p>
                 </div>
                 <button
                   onClick={() => handleDelete(alert._id)}
@@ -166,22 +188,19 @@ const Alerts = () => {
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-gray-700">
-                  {alert.type === 'above' ? (
+                  {alert.condition === 'above' ? (
                     <TrendingUp className="text-green-500" size={20} />
                   ) : (
                     <TrendingDown className="text-red-500" size={20} />
                   )}
                   <span className="text-sm font-medium">
-                    Alert when price goes {alert.type}
+                    Alert when price goes {alert.condition}
                   </span>
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-xs text-gray-600 mb-1">Target Price</p>
                   <p className="text-3xl font-bold text-gray-900">${alert.targetPrice}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Current: ${alert.stock?.price || 'N/A'}
-                  </p>
                 </div>
 
                 <div className="pt-3 border-t border-gray-200">
@@ -189,6 +208,11 @@ const Alerts = () => {
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                       <span className="text-sm font-medium text-green-600">Active</span>
+                    </div>
+                  ) : alert.triggered ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-yellow-600">Triggered</span>
                     </div>
                   ) : (
                     <button
@@ -225,8 +249,8 @@ const Alerts = () => {
                   Select Stock
                 </label>
                 <select
-                  value={newAlert.stock}
-                  onChange={(e) => setNewAlert({ ...newAlert, stock: e.target.value })}
+                  value={newAlert.stockId}
+                  onChange={(e) => setNewAlert({ ...newAlert, stockId: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   required
                 >
